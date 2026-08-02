@@ -12,7 +12,7 @@ export default function IncidentWorkspacePage({ params }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedOption, setSelectedOption] = useState(null);
-  const [owner, setOwner] = useState('Sarah Chen — Supply Chain Operations Director');
+  const [owner, setOwner] = useState('Sarah Mitchell, Supply Chain Operations Director');
   const [reason, setReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [decisionLogged, setDecisionLogged] = useState(false);

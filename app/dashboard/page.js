@@ -174,7 +174,7 @@ export default function DashboardPage() {
                       <ul className="mt-3 space-y-1 text-sm text-slateline">
                         {assessment.risk.reasons.map((r, i) => (
                           <li key={i} className="flex gap-2">
-                            <span className="text-slateline/40">—</span> {r}
+                            <span className="text-slateline/40">•</span> {r}
                           </li>
                         ))}
                       </ul>

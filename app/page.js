@@ -97,7 +97,7 @@ export default function MissionControlPage() {
           <p className="font-mono text-xs tracking-wideish text-navy mb-3">WHAT MERIDIAN IS</p>
           <h2 className="font-display text-2xl sm:text-3xl text-charcoal max-w-3xl leading-snug">
             A platform that helps organisations detect operational risk, understand its impact, and
-            coordinate a response across a complex supply network — not another dashboard.
+            coordinate a response across a complex supply network, rather than another dashboard.
           </h2>
           <p className="mt-3 text-sm text-slateline max-w-2xl">Turning operational complexity into coordinated action.</p>
         </div>
@@ -108,14 +108,14 @@ export default function MissionControlPage() {
         <p className="font-mono text-xs tracking-wideish text-navy mb-5">WHO THIS IS BUILT FOR</p>
         <div className="grid md:grid-cols-2 gap-6">
           <PersonaCard
-            name="Sarah Chen"
+            name="Sarah Mitchell"
             title="Supply Chain Operations Director"
             goals={['Prevent production delays', 'Understand risks early', 'Coordinate teams']}
             pains={['Data exists across 15 systems', 'Analysts manually build reports', 'Decisions need multiple meetings']}
             metric="Reduce disruption response time by 50%"
           />
           <PersonaCard
-            name="Daniel Wong"
+            name="Daniel Whitfield"
             title="Supply Chain Analyst"
             goals={['Investigate disruptions', 'Identify root causes', 'Recommend actions']}
             pains={['Data fragmentation across systems', 'Lack of end-to-end visibility']}
@@ -135,7 +135,7 @@ export default function MissionControlPage() {
             <OntologyDiagram />
           </div>
           <p className="mt-4 text-sm text-slateline max-w-2xl">
-            Every incident, decision, and outcome traces back through this ontology — a supplier
+            Every incident, decision, and outcome traces back through this ontology: a supplier
             provides a product, shipped through a port, affected by a disruption, requiring a
             human decision. That connective structure is what lets Meridian explain impact instead
             of just reporting it.
@@ -194,13 +194,13 @@ function PersonaCard({ name, title, goals, pains, metric }) {
       <p className="font-mono text-[10px] tracking-wideish text-navy mb-1.5">GOALS</p>
       <ul className="text-sm text-charcoal mb-4 space-y-1">
         {goals.map((g) => (
-          <li key={g} className="flex gap-2"><span className="text-slateline/40">—</span>{g}</li>
+          <li key={g} className="flex gap-2"><span className="text-slateline/40">•</span>{g}</li>
         ))}
       </ul>
       <p className="font-mono text-[10px] tracking-wideish text-rust mb-1.5">PAIN POINTS</p>
       <ul className="text-sm text-charcoal mb-4 space-y-1">
         {pains.map((p) => (
-          <li key={p} className="flex gap-2"><span className="text-slateline/40">—</span>{p}</li>
+          <li key={p} className="flex gap-2"><span className="text-slateline/40">•</span>{p}</li>
         ))}
       </ul>
       <p className="font-mono text-[10px] tracking-wideish text-moss mb-1">SUCCESS METRIC</p>
