@@ -26,7 +26,7 @@ export default function DecisionsPage() {
         <p className="font-mono text-xs tracking-wideish text-navy mb-2">DECISION REGISTER</p>
         <h1 className="font-display text-2xl sm:text-3xl text-charcoal mb-2">Every decision, with its reasoning, in one place.</h1>
         <p className="text-sm text-slateline max-w-2xl mb-8">
-          Meridian doesn&apos;t make the call for you. It records who did, what they chose, and why —
+          Meridian doesn&apos;t make the call for you. It records who did, what they chose, and why,
           so the reasoning survives past the meeting where it happened.
         </p>
 

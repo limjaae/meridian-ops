@@ -32,7 +32,7 @@ export default function DemoPage() {
     <main className="min-h-screen bg-paper">
       <SiteNav />
       <div className="max-w-3xl mx-auto px-5 sm:px-8 py-10">
-        <p className="font-mono text-xs tracking-wideish text-navy mb-2">DEMO MODE — NO LOGIN REQUIRED</p>
+        <p className="font-mono text-xs tracking-wideish text-navy mb-2">DEMO MODE · NO LOGIN REQUIRED</p>
         <h1 className="font-display text-2xl sm:text-3xl text-charcoal mb-2">Asia-Pacific Semiconductor Crisis</h1>
         <p className="text-sm text-slateline max-w-2xl mb-8">
           A guided walkthrough of how Meridian moves from a live disruption to a coordinated,
@@ -101,7 +101,7 @@ export default function DemoPage() {
                     </div>
                   ))}
                 </div>
-                <p className="text-sm text-slateline mt-3">A human owner selects and approves the action — Meridian doesn&apos;t decide automatically.</p>
+                <p className="text-sm text-slateline mt-3">A human owner selects and approves the action; Meridian doesn&apos;t decide automatically.</p>
               </div>
             )}
 

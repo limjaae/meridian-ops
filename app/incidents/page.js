@@ -35,7 +35,7 @@ export default function IncidentsPage() {
         <h1 className="font-display text-2xl sm:text-3xl text-charcoal mb-2">Disruption events across the network.</h1>
         <p className="text-sm text-slateline max-w-2xl mb-8">
           Each incident carries its root cause, quantified impact, response options, and an
-          actions checklist — open one to investigate and log a decision.
+          actions checklist. Open one to investigate and log a decision.
         </p>
 
         <div className="space-y-3">
