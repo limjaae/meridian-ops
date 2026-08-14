@@ -11,7 +11,7 @@ with a human making the final call every time.
 
 1. **Live Australian port weather assessment**: real wind, swell, and precipitation data (via
    Open-Meteo) for nine Australian ports, scored against transparent operational thresholds, with
-   inventory and revenue impact modeling and ranked alternative routes.
+   inventory and revenue impact modelling and ranked alternative routes.
 2. **Asia-Pacific Semiconductor Crisis (demo scenario)**: a synthetic but realistically-scaled
    incident (a Shanghai port closure cascading across Taiwan/Singapore-routed semiconductor
    suppliers) used to demonstrate the full Mission Control to Incident Workspace to Decision
@@ -50,14 +50,8 @@ are what matter here, not the storage engine.
 - **Open-Meteo**: live wind, gust, precipitation, and marine swell data (no API key required)
 - Deployed on **Vercel**
 
-An earlier spec for this project called for a separate FastAPI/Python backend, Docker Compose,
-trained ML risk models, Mapbox, and a split AWS/Render deployment. This build deliberately keeps a
-single Next.js + Supabase stack instead. It's one service to deploy and reason about rather than
-two, the "ML" is a transparent, auditable scoring formula rather than a model trained on synthetic
-data (which would be hard to defend honestly in an interview), and it avoids infrastructure
-(Docker, AWS Elastic Beanstalk) that wasn't available to stand up and verify end-to-end here. The
-product thinking from that spec (ontology, personas, Mission Control, incident workspace, decision
-register, demo mode) is fully implemented; the infrastructure shape is simplified on purpose.
+Initially, I had a FastAPI/Python backend, Docker Compose,trained ML risk models, Mapbox, and a split AWS/Render deployment. However, I have enhanced it to deliberately keep a single Next.js + Supabase stack instead. It's one service to deploy and reason about rather than two; the ML is a transparent, auditable scoring formula rather than a model trained on synthetic data. The product thinking considers ontology, personas, Mission Control, incident workspace, decision
+register, demo mode.
 
 ## Local development
 
