@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import SiteNav from '../components/SiteNav';
 import OntologyDiagram from '../components/OntologyDiagram';
+import { BASE_PATH } from '../lib/basePath';
 
 const currency = (n) =>
   new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD', maximumFractionDigits: 0, notation: 'compact' }).format(n || 0);
@@ -20,7 +21,7 @@ export default function MissionControlPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/incidents')
+    fetch(`${BASE_PATH}/api/incidents`)
       .then((r) => r.json())
       .then((d) => {
         setIncidents(d.incidents || []);

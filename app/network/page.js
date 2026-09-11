@@ -4,14 +4,15 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import SiteNav from '../../components/SiteNav';
 import OpsBoard from '../../components/OpsBoard';
+import { BASE_PATH } from '../../lib/basePath';
 
 export default function NetworkPage() {
   const [ports, setPorts] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
 
   useEffect(() => {
-    fetch('/api/ports').then((r) => r.json()).then((d) => setPorts(d.ports || []));
-    fetch('/api/suppliers').then((r) => r.json()).then((d) => setSuppliers(d.suppliers || []));
+    fetch(`${BASE_PATH}/api/ports`).then((r) => r.json()).then((d) => setPorts(d.ports || []));
+    fetch(`${BASE_PATH}/api/suppliers`).then((r) => r.json()).then((d) => setSuppliers(d.suppliers || []));
   }, []);
 
   const byCountry = suppliers.reduce((acc, s) => {
