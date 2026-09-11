@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import SiteNav from '../../components/SiteNav';
+import { BASE_PATH } from '../../lib/basePath';
 
 const currency = (n) =>
   new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD', maximumFractionDigits: 0 }).format(n || 0);
@@ -21,7 +22,7 @@ export default function DemoPage() {
 
   useEffect(() => {
     // Incident 1 is the marquee Shanghai / semiconductor scenario seeded for this demo.
-    fetch('/api/incidents/1')
+    fetch(`${BASE_PATH}/api/incidents/1`)
       .then((r) => r.json())
       .then(setData);
   }, []);

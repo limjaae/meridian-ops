@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import SiteNav from '../../../components/SiteNav';
+import { BASE_PATH } from '../../../lib/basePath';
 
 const currency = (n) =>
   new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD', maximumFractionDigits: 0 }).format(n || 0);
@@ -18,7 +19,7 @@ export default function IncidentWorkspacePage({ params }) {
   const [decisionLogged, setDecisionLogged] = useState(false);
 
   function load() {
-    fetch(`/api/incidents/${id}`)
+    fetch(`${BASE_PATH}/api/incidents/${id}`)
       .then((r) => r.json())
       .then((d) => {
         setData(d);
@@ -32,7 +33,7 @@ export default function IncidentWorkspacePage({ params }) {
   }, [id]);
 
   async function toggleAction(action) {
-    await fetch(`/api/actions/${action.id}`, {
+    await fetch(`${BASE_PATH}/api/actions/${action.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ done: !action.done }),
@@ -44,7 +45,7 @@ export default function IncidentWorkspacePage({ params }) {
     if (!selectedOption || !reason.trim()) return;
     setSubmitting(true);
     try {
-      await fetch('/api/decisions', {
+      await fetch(`${BASE_PATH}/api/decisions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import SiteNav from '../../components/SiteNav';
+import { BASE_PATH } from '../../lib/basePath';
 
 const RISK_COLORS = {
   low: { dot: '#4C7A63', text: 'text-moss', bg: 'bg-moss/10', border: 'border-moss/30' },
@@ -25,7 +26,7 @@ export default function DashboardPage() {
   const [tab, setTab] = useState('assess');
 
   useEffect(() => {
-    fetch('/api/ports')
+    fetch(`${BASE_PATH}/api/ports`)
       .then((r) => r.json())
       .then((d) => {
         setPorts(d.ports || []);
@@ -35,7 +36,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (tab === 'history') {
-      fetch('/api/history')
+      fetch(`${BASE_PATH}/api/history`)
         .then((r) => r.json())
         .then((d) => setHistory(d.entries || []));
     }
@@ -48,7 +49,7 @@ export default function DashboardPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/assess', {
+      const res = await fetch(`${BASE_PATH}/api/assess`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ portCode: selectedCode, scenario }),
