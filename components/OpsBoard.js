@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { classifyWeatherRisk } from '../lib/engine';
+import { BASE_PATH } from '../lib/basePath';
 
 const STATUS_LABEL = {
   low: 'ON SCHEDULE',
@@ -29,14 +30,14 @@ export default function OpsBoard() {
 
     async function load() {
       try {
-        const portsRes = await fetch('/api/ports');
+        const portsRes = await fetch(`${BASE_PATH}/api/ports`);
         const { ports } = await portsRes.json();
         if (!ports || cancelled) return;
 
         const results = await Promise.all(
           ports.map(async (port) => {
             try {
-              const wRes = await fetch(`/api/weather?lat=${port.lat}&lon=${port.lon}`);
+              const wRes = await fetch(`${BASE_PATH}/api/weather?lat=${port.lat}&lon=${port.lon}`);
               const weather = await wRes.json();
               const risk = classifyWeatherRisk(weather);
               return { port, weather, risk };
