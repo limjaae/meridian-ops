@@ -1,0 +1,26 @@
+name: Keep Supabase database active
+
+# Supabase's free tier auto-pauses a project after a stretch of no activity.
+# When that happens, every API route in this app starts returning 500s
+# because the database it queries is asleep. This job pings a live,
+# read-only endpoint on a schedule so the project always looks "active" to
+# Supabase and never gets paused in the first place.
+#
+# Runs well inside Supabase's inactivity window (about a week) so there's
+# margin even if a run gets skipped or delayed.
+
+on:
+  schedule:
+    - cron: '0 3 */3 * *' # every 3 days at 03:00 UTC
+  workflow_dispatch: {} # allow manually triggering a run from the Actions tab
+
+jobs:
+  ping-production:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping the live ports API
+        run: |
+          curl --fail --silent --show-error \
+            "https://jasonlim.tech/meridian-operations/api/ports" \
+            --output /dev/null
+          echo "Pinged production API at $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
