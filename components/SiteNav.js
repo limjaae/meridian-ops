@@ -10,7 +10,6 @@ const LINKS = [
   { href: '/incidents', label: 'Incidents' },
   { href: '/decisions', label: 'Decisions' },
   { href: '/demo', label: 'Demo Mode' },
-  { href: '/api-docs', label: 'API Docs' },
 ];
 
 export default function SiteNav() {
