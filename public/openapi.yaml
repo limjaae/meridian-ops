@@ -1,0 +1,492 @@
+openapi: 3.0.3
+info:
+  title: Meridian Operations API
+  description: >
+    Internal API for Meridian Operations, a decision-support platform for
+    supply chain disruption. All 9 routes below are implemented as Next.js
+    App Router route handlers in the same deployable service as the
+    frontend (no separate backend). Reads go straight to Supabase Postgres;
+    the live-conditions routes also call the Open-Meteo weather/marine API.
+    This spec was written by hand against the deployed route handlers,
+    not auto-generated.
+  version: "1.0.0"
+servers:
+  - url: https://jasonlim.tech/meridian-operations
+    description: Production (embedded on the portfolio site)
+tags:
+  - name: Ontology reads
+    description: Read-only access to the core data model (ports, suppliers, incidents)
+  - name: Live conditions engine
+    description: Live weather/marine data and the rules-based risk assessment
+  - name: Human-in-the-loop
+    description: Writes that always require a human decision or action, never automated
+  - name: Audit
+    description: Historical logs
+
+paths:
+  /api/ports:
+    get:
+      tags: [Ontology reads]
+      summary: List all monitored ports
+      responses:
+        "200":
+          description: Ports, ordered by id
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ports:
+                    type: array
+                    items: { $ref: "#/components/schemas/Port" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /api/suppliers:
+    get:
+      tags: [Ontology reads]
+      summary: List all suppliers
+      description: Ordered by risk_score descending (nulls last). Each supplier is joined with its primary port.
+      responses:
+        "200":
+          description: Suppliers
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  suppliers:
+                    type: array
+                    items: { $ref: "#/components/schemas/Supplier" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /api/incidents:
+    get:
+      tags: [Ontology reads]
+      summary: List all incidents
+      description: Ordered by financial_exposure_aud descending. Each incident is joined with its port.
+      responses:
+        "200":
+          description: Incidents
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  incidents:
+                    type: array
+                    items: { $ref: "#/components/schemas/Incident" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /api/incidents/{id}:
+    get:
+      tags: [Ontology reads]
+      summary: Get one incident's full workspace
+      description: >
+        Returns the incident, its response options, its action checklist, and
+        the suppliers affected by it (currently approximated as the top N
+        semiconductor-sector suppliers by risk score, where N is the
+        incident's affected_supplier_count).
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Full incident detail
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  incident: { $ref: "#/components/schemas/Incident" }
+                  options:
+                    type: array
+                    items: { $ref: "#/components/schemas/IncidentOption" }
+                  actions:
+                    type: array
+                    items: { $ref: "#/components/schemas/IncidentAction" }
+                  affectedSuppliers:
+                    type: array
+                    items: { $ref: "#/components/schemas/Supplier" }
+        "404":
+          description: No incident with that id
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error: { type: string, example: incident_not_found }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /api/actions/{id}:
+    patch:
+      tags: [Human-in-the-loop]
+      summary: Toggle an incident action's done state
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                done: { type: boolean }
+              required: [done]
+      responses:
+        "200":
+          description: The updated action
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  action: { $ref: "#/components/schemas/IncidentAction" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /api/decisions:
+    get:
+      tags: [Human-in-the-loop]
+      summary: List the decision register
+      description: Ordered by created_at descending. Each decision is joined with its incident's title and severity.
+      responses:
+        "200":
+          description: Decisions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  decisions:
+                    type: array
+                    items: { $ref: "#/components/schemas/Decision" }
+        "500": { $ref: "#/components/responses/ServerError" }
+    post:
+      tags: [Human-in-the-loop]
+      summary: Log a new decision
+      description: >
+        Always records who made the call, what they chose, and why. Meridian
+        never selects or applies a decision automatically; this endpoint only
+        ever gets called from a human explicitly submitting the decision form.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                incidentId: { type: integer }
+                owner: { type: string, example: "Sarah Mitchell, Supply Chain Operations Director" }
+                optionSelected: { type: string, example: "Add second-source assembly partner" }
+                expectedCostAud: { type: number, nullable: true }
+                expectedDelayDays: { type: number, nullable: true }
+                businessReason: { type: string }
+              required: [incidentId, owner, optionSelected, businessReason]
+      responses:
+        "200":
+          description: The created decision
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  decision: { $ref: "#/components/schemas/Decision" }
+        "400":
+          description: A required field was missing
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error: { type: string, example: missing_required_fields }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /api/weather:
+    get:
+      tags: [Live conditions engine]
+      summary: Live wind, wave, and precipitation for a coordinate
+      description: Proxies Open-Meteo's forecast and marine APIs and normalizes the response.
+      parameters:
+        - name: lat
+          in: query
+          required: true
+          schema: { type: number }
+        - name: lon
+          in: query
+          required: true
+          schema: { type: number }
+      responses:
+        "200":
+          description: Current conditions
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Weather" }
+        "400":
+          description: Missing lat or lon
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error: { type: string, example: "lat and lon are required" }
+        "502":
+          description: Open-Meteo request failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error: { type: string, example: weather_fetch_failed }
+                  message: { type: string }
+
+  /api/assess:
+    post:
+      tags: [Live conditions engine]
+      summary: Run the risk-scoring engine for a port and scenario
+      description: >
+        Fetches live weather for the port, runs it through the transparent,
+        rules-based scoring in lib/engine.js (crane-stop gust threshold,
+        pilotage-suspend wave height, etc.), and returns a full assessment.
+        Also writes a row to query_log for the History tab.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                portCode: { type: string, example: AUMEL }
+                scenario:
+                  type: object
+                  properties:
+                    portClosure: { type: boolean }
+                    demandSpike: { type: boolean }
+                assumptions:
+                  type: object
+                  description: Optional overrides for the engine's default assumptions
+              required: [portCode]
+      responses:
+        "200":
+          description: The full assessment
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Assessment" }
+        "400":
+          description: Missing portCode
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error: { type: string, example: "portCode is required" }
+        "404":
+          description: No port with that code
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error: { type: string, example: port_not_found }
+                  detail: { type: string }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /api/history:
+    get:
+      tags: [Audit]
+      summary: Recent assessment log
+      description: The 20 most recent rows from query_log, newest first. Backs the Dashboard's History tab.
+      responses:
+        "200":
+          description: Log entries
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  entries:
+                    type: array
+                    items: { $ref: "#/components/schemas/HistoryEntry" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+components:
+  responses:
+    ServerError:
+      description: Unhandled error (usually a Supabase or upstream failure)
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error: { type: string }
+  schemas:
+    Port:
+      type: object
+      properties:
+        id: { type: integer }
+        code: { type: string, example: AUMEL }
+        name: { type: string, example: Port of Melbourne }
+        state: { type: string, example: VIC }
+        lat: { type: number }
+        lon: { type: number }
+        port_type: { type: string, example: container }
+        annual_teu: { type: integer, nullable: true }
+        annual_tonnes: { type: integer, nullable: true }
+        primary_cargo: { type: string }
+        description: { type: string }
+    Supplier:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        sector: { type: string, example: semiconductors }
+        primary_port_id: { type: integer }
+        monthly_volume_teu: { type: integer }
+        dependency_level: { type: string, enum: [low, medium, high] }
+        country: { type: string, nullable: true }
+        risk_score: { type: integer, nullable: true }
+        delivery_rating: { type: integer, nullable: true }
+        capacity_utilization: { type: integer, nullable: true }
+        port:
+          type: object
+          properties:
+            code: { type: string }
+            name: { type: string }
+            lat: { type: number }
+            lon: { type: number }
+    Incident:
+      type: object
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        event_type: { type: string, example: port_closure }
+        severity: { type: string, enum: [low, medium, high, critical] }
+        status: { type: string, example: active }
+        root_cause: { type: string }
+        location: { type: string }
+        port_id: { type: integer }
+        financial_exposure_aud: { type: number }
+        affected_supplier_count: { type: integer }
+        affected_shipment_count: { type: integer }
+        response_deadline_hours: { type: integer }
+        started_at: { type: string, format: date-time }
+        expected_duration_days: { type: integer }
+        description: { type: string }
+        port:
+          type: object
+          properties:
+            code: { type: string }
+            name: { type: string }
+            state: { type: string }
+    IncidentOption:
+      type: object
+      properties:
+        id: { type: integer }
+        incident_id: { type: integer }
+        label: { type: string, example: "Add second-source assembly partner" }
+        cost_impact_aud: { type: number }
+        delay_impact_days: { type: number }
+        notes: { type: string, nullable: true }
+    IncidentAction:
+      type: object
+      properties:
+        id: { type: integer }
+        incident_id: { type: integer }
+        description: { type: string }
+        done: { type: boolean }
+        sort_order: { type: integer }
+    Decision:
+      type: object
+      properties:
+        id: { type: integer }
+        incident_id: { type: integer }
+        owner: { type: string }
+        option_selected: { type: string }
+        expected_cost_aud: { type: number, nullable: true }
+        expected_delay_days: { type: number, nullable: true }
+        business_reason: { type: string }
+        status: { type: string, example: approved }
+        created_at: { type: string, format: date-time }
+        incident:
+          type: object
+          properties:
+            title: { type: string }
+            severity: { type: string }
+    Weather:
+      type: object
+      properties:
+        source: { type: string, example: "Open-Meteo (live)" }
+        fetchedAt: { type: string, format: date-time }
+        temperatureC: { type: number, nullable: true }
+        precipitationMm: { type: number }
+        windSpeedKmh: { type: number, nullable: true }
+        windGustKmh: { type: number }
+        waveHeightM: { type: number, nullable: true }
+        swellHeightM: { type: number, nullable: true }
+        weatherCode: { type: integer, nullable: true }
+    Assessment:
+      type: object
+      description: The full output of the risk-scoring engine for one port + scenario.
+      properties:
+        port:
+          type: object
+          properties:
+            code: { type: string }
+            name: { type: string }
+        weather: { $ref: "#/components/schemas/Weather" }
+        risk:
+          type: object
+          properties:
+            level: { type: string, enum: [low, medium, high, critical] }
+            score: { type: integer, minimum: 0, maximum: 100 }
+            reasons:
+              type: array
+              items: { type: string }
+        predictedDelayDays: { type: number }
+        inventory:
+          type: object
+          properties:
+            affectedTeu: { type: number }
+            safetyStockAssumptionDays: { type: number }
+        revenueImpactAud: { type: number }
+        assumptions:
+          type: object
+          description: The labeled thresholds the engine used for this run
+          properties:
+            craneStopGustKmh: { type: number }
+            pilotSuspendWaveM: { type: number }
+            heavyRainMmHr: { type: number }
+            avgDeclaredValuePerTeuAud: { type: number }
+            avgSafetyStockDays: { type: number }
+        affectedSuppliers:
+          type: array
+          items: { $ref: "#/components/schemas/Supplier" }
+        recommendedRoutes:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: integer }
+              mode: { type: string, example: alt_port_rail }
+              extra_transit_days: { type: number }
+              extra_cost_pct: { type: number }
+              alt:
+                type: object
+                properties:
+                  code: { type: string }
+                  name: { type: string }
+                  state: { type: string }
+    HistoryEntry:
+      type: object
+      properties:
+        id: { type: integer }
+        created_at: { type: string, format: date-time }
+        port_code: { type: string }
+        scenario: { type: string, description: JSON-encoded scenario inputs }
+        risk_score: { type: integer }
+        risk_level: { type: string }
+        predicted_delay_days: { type: number }
+        revenue_impact_aud: { type: number }
