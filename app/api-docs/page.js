@@ -57,13 +57,6 @@ export default function ApiDocsPage() {
       <SiteNav />
       <div className="max-w-6xl mx-auto px-5 sm:px-8 py-10">
         <p className="font-mono text-xs tracking-wideish text-navy mb-2">API REFERENCE</p>
-        <h1 className="font-display text-2xl sm:text-3xl text-charcoal mb-2">
-          All 9 endpoints, documented and callable.
-        </h1>
-        <p className="text-sm text-slateline max-w-2xl mb-8">
-          A hand-written OpenAPI spec describing every route in this app, rendered with Swagger UI.
-          Read-only endpoints can be called directly from here with the “Try it out” button.
-        </p>
         <div className="bg-white border border-hairline rounded-lg overflow-hidden">
           <div ref={containerRef} />
         </div>

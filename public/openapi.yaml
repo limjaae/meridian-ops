@@ -5,10 +5,8 @@ info:
     Internal API for Meridian Operations, a decision-support platform for
     supply chain disruption. All 9 routes below are implemented as Next.js
     App Router route handlers in the same deployable service as the
-    frontend (no separate backend). Reads go straight to Supabase Postgres;
-    the live-conditions routes also call the Open-Meteo weather/marine API.
-    This spec was written by hand against the deployed route handlers,
-    not auto-generated.
+    frontend (no separate backend). Includes Supabase Postgres; the
+    live-conditions routes also call the Open-Meteo weather/marine API.
   version: "1.0.0"
 servers:
   - url: https://jasonlim.tech/meridian-operations
