@@ -168,9 +168,14 @@ export default function MissionControlPage() {
       <footer className="border-t border-hairline">
         <div className="max-w-6xl mx-auto px-5 sm:px-8 py-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <p className="text-xs text-slateline/60">Meridian Operations · Turning operational complexity into coordinated action.</p>
-          <Link href="/dashboard" className="text-xs text-slateline hover:text-charcoal underline underline-offset-4">
-            Live port-weather assessment tool →
-          </Link>
+          <div className="flex items-center gap-5">
+            <Link href="/dashboard" className="text-xs text-slateline hover:text-charcoal underline underline-offset-4">
+              Live port-weather assessment tool →
+            </Link>
+            <Link href="/api-docs" className="text-xs text-slateline hover:text-charcoal underline underline-offset-4">
+              API reference →
+            </Link>
+          </div>
         </div>
       </footer>
     </main>
